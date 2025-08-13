@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="hero">
+    <div class="hero-content">
+        <h1 class="hero-title animate__animated animate__fadeInDown">AI-Powered Customer Support</h1>
+        <p class="hero-subtitle animate__animated animate__fadeInUp">Get instant, intelligent assistance anytime</p>
+        {% if not current_user.is_authenticated %}
+        <div class="hero-buttons animate__animated animate__fadeIn">
+            <a href="{{ url_for('auth.login') }}" class="btn btn-primary">Login</a>
+            <a href="{{ url_for('auth.signup') }}" class="btn btn-secondary">Sign Up</a>
+        </div>
+        {% else %}
+        <div class="hero-buttons animate__animated animate__fadeIn">
+            <a href="{{ url_for('chatbot') }}" class="btn btn-primary">Try Chatbot</a>
+            <a href="{{ url_for('file_upload') }}" class="btn btn-secondary">Upload Files</a>
+        </div>
+        {% endif %}
+    </div>
+    <div class="hero-image animate__animated animate__zoomIn">
+        <img src="{{ url_for('static', filename='images/ai-assistant.png') }}" alt="AI Assistant">
+    </div>
+</div>
+
+<div class="features">
+    <div class="feature-card animate__animated animate__fadeInLeft">
+        <i class="fas fa-comments"></i>
+        <h3>24/7 Support</h3>
+        <p>Our AI chatbot is available round the clock to assist you.</p>
+    </div>
+    <div class="feature-card animate__animated animate__fadeInUp">
+        <i class="fas fa-brain"></i>
+        <h3>Smart Responses</h3>
+        <p>Powered by advanced NLP for accurate and helpful responses.</p>
+    </div>
+    <div class="feature-card animate__animated animate__fadeInRight">
+        <i class="fas fa-file-upload"></i>
+        <h3>File Analysis</h3>
+        <p>Upload documents and get instant analysis and summaries.</p>
+    </div>
+</div>
+{% endblock %}

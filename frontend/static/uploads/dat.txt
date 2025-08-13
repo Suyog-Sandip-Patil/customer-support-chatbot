@@ -1,0 +1,262 @@
+import os
+from flask import Flask, render_template, request, jsonify, send_from_directory, flash, redirect, url_for
+from flask_login import LoginManager, current_user, login_required
+from werkzeug.utils import secure_filename
+import openai
+import nltk
+from nltk.tokenize import word_tokenize
+from nltk.corpus import stopwords
+import string
+import filetype
+from pdfminer.high_level import extract_text
+from pptx import Presentation
+import docx
+import csv
+import openai
+import logging
+import os
+from dotenv import load_dotenv
+load_dotenv()
+from openai import OpenAI
+openai.api_base = "https://api.openai.com/v1"
+
+openai.api_key = os.getenv('OPENAI_API_KEY') 
+
+
+
+# Initialize NLTK
+nltk.download('punkt', quiet=True)
+nltk.download('stopwords', quiet=True)
+
+# Initialize Flask
+app = Flask(__name__, template_folder='../frontend/templates', static_folder='../frontend/static')
+app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///db.sqlite'
+app.config['UPLOAD_FOLDER'] = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'frontend', 'static', 'uploads')
+os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max upload size
+
+# Initialize extensions
+from database import db
+db.init_app(app)
+
+# Initialize Login Manager
+login_manager = LoginManager()
+login_manager.login_view = 'auth.login'
+login_manager.init_app(app)
+
+from database import User
+
+@login_manager.user_loader
+def load_user(user_id):
+    return db.session.get(User, int(user_id))
+
+# Register Blueprints
+from auth import auth as auth_blueprint
+app.register_blueprint(auth_blueprint)
+
+app.logger.setLevel(logging.DEBUG)
+
+
+# OpenAI Setup
+openai.api_key = os.getenv('OPENAI_API_KEY')
+# File Processing Functions
+def allowed_file(filename):
+    ALLOWED_EXTENSIONS = {'txt', 'pdf', 'docx', 'pptx', 'csv'}
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+# Update your extract_text_from_file function:
+def extract_text_from_file(filepath):
+    try:
+        # First try filetype
+        kind = filetype.guess(filepath)
+        if kind is None:
+            # Fallback to file extension
+            ext = os.path.splitext(filepath)[1].lower()
+            if ext == '.txt':
+                with open(filepath, 'r', encoding='utf-8', errors='ignore') as f:
+                    return f.read()
+            return "Unsupported file type"
+        
+        # Process based on MIME type
+        if kind.mime == 'text/plain':
+            with open(filepath, 'r', encoding='utf-8', errors='ignore') as f:
+                return f.read()
+        elif kind.mime == 'application/pdf':
+            return extract_text(filepath)
+        elif kind.mime == 'application/vnd.openxmlformats-officedocument.wordprocessingml.document':
+            doc = docx.Document(filepath)
+            return '\n'.join([para.text for para in doc.paragraphs])
+        elif kind.mime == 'application/vnd.openxmlformats-officedocument.presentationml.presentation':
+            prs = Presentation(filepath)
+            return '\n'.join([shape.text for slide in prs.slides for shape in slide.shapes if hasattr(shape, "text")])
+        elif kind.mime == 'text/csv':
+            with open(filepath, 'r', encoding='utf-8') as f:
+                return '\n'.join([','.join(row) for row in csv.reader(f)])
+        else:
+            return "Unsupported file type"
+    except Exception as e:
+        app.logger.error(f"Error processing {filepath}: {str(e)}")
+        return f"Error processing file: {str(e)}"
+
+def analyze_text(text):
+    # Tokenize and clean text
+    tokens = word_tokenize(text)
+    tokens = [word.lower() for word in tokens if word.isalpha()]
+    stop_words = set(stopwords.words('english'))
+    filtered_tokens = [word for word in tokens if not word in stop_words]
+    
+    # Get keywords
+    freq_dist = nltk.FreqDist(filtered_tokens)
+    keywords = [word for word, count in freq_dist.most_common(10)]
+    
+    # Updated OpenAI API call
+    try:
+        response = openai.ChatCompletion.create(
+            model="gpt-3.5-turbo",
+            messages=[
+                {"role": "system", "content": "You are a helpful text analysis assistant."},
+                {"role": "user", "content": f"Summarize the following text and extract key points:\n\n{text[:3000]}"}
+            ],
+            temperature=0.5,
+            max_tokens=150
+        )
+        summary = response.choices[0].message['content']
+    except Exception as e:
+        app.logger.error(f"Summary generation error: {str(e)}")
+        summary = "Could not generate summary due to API error"
+    
+    return {
+        'keywords': keywords,
+        'summary': summary,
+        'word_count': len(tokens),
+        'unique_words': len(set(tokens))
+    }
+# Chatbot Function
+def get_chatbot_response(message):
+    try:
+        response = client.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=[
+                {"role": "system", "content": "You are a helpful assistant"},
+                {"role": "user", "content": message}
+            ],
+            temperature=0.7,
+            max_tokens=150
+        )
+        return response.choices[0].message.content
+    except Exception as e:
+        app.logger.error(f"OpenAI Error: {str(e)}")
+        return "Our AI assistant is currently unavailable. Please try again shortly."
+# Routes
+@app.route('/')
+def index():
+    return render_template('index.html')
+
+@app.route('/about')
+def about():
+    return render_template('about.html')
+
+@app.route('/contact')
+def contact():
+    return render_template('contact.html')
+
+@app.route('/analytics')
+@login_required
+def analytics():
+    return render_template('analytics.html')
+
+@app.route('/file_upload', methods=['GET', 'POST'])
+@login_required
+def file_upload():
+    if request.method == 'POST':
+        if 'file' not in request.files:
+            flash('No file part')
+            return redirect(request.url)
+        
+        file = request.files['file']
+        if file.filename == '':
+            flash('No selected file')
+            return redirect(request.url)
+        
+        if file and allowed_file(file.filename):
+            filename = secure_filename(file.filename)
+            filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+            
+            try:
+                # Ensure directory exists
+                os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+                
+                # Save file
+                file.save(filepath)
+                
+                # Verify file was saved
+                if not os.path.exists(filepath):
+                    flash('File failed to save')
+                    return redirect(request.url)
+                
+                # Process file
+                text = extract_text_from_file(filepath)
+                if text == "Unsupported file type":
+                    flash('Unsupported file type')
+                    return redirect(request.url)
+                    
+                analysis = analyze_text(text)
+                return render_template('file_upload.html', analysis=analysis, filename=filename)
+                
+            except Exception as e:
+                flash(f'Error processing file: {str(e)}')
+                app.logger.error(f"File processing error: {str(e)}")
+                return redirect(request.url)
+    
+    return render_template('file_upload.html')
+
+@app.route('/chatbot', methods=['GET', 'POST'])
+@login_required
+def chatbot():
+    if request.method == 'POST':
+        data = request.get_json()
+        user_message = data.get('message', '')
+        response = get_chatbot_response(user_message)
+        return jsonify({'response': response})
+    
+    return render_template('chatbot.html')
+
+@app.route('/uploads/<filename>')
+@login_required
+def uploaded_file(filename):
+    return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
+
+@app.route('/test')
+def test_endpoints():
+    """Test both file processing and chatbot functionality"""
+    # Test OpenAI connection
+    try:
+        chat_test = get_chatbot_response("Hello")
+        openai_status = f"OpenAI connection working. Response: {chat_test[:50]}..."
+    except Exception as e:
+        openai_status = f"OpenAI error: {str(e)}"
+    
+    # Test file processing
+    test_file = os.path.join(app.root_path, 'test.txt')
+    try:
+        with open(test_file, 'w') as f:
+            f.write("This is a test file.")
+        file_content = extract_text_from_file(test_file)
+        file_status = f"File processing working. Content: {file_content}"
+    except Exception as e:
+        file_status = f"File processing error: {str(e)}"
+    
+    return jsonify({
+        'openai_status': openai_status,
+        'file_status': file_status,
+        'env_vars': {
+            'OPENAI_API_KEY': bool(os.getenv('OPENAI_API_KEY')),
+            'UPLOAD_FOLDER': os.getenv('UPLOAD_FOLDER')
+        }
+    })
+
+if __name__ == '__main__':
+    with app.app_context():
+        db.create_all()
+    app.run(debug=True)

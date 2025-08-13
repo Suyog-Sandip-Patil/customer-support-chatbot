@@ -1,0 +1,14 @@
+flask
+flask-sqlalchemy
+flask-login
+flask-wtf
+python-dotenv
+openai
+werkzeug
+nltk
+python-magic
+pdfminer.six
+python-pptx
+python-magic-bin 
+pdfminer.six
+python-docx

@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="upload-container">
+    <h1 class="upload-title animate__animated animate__fadeInDown">File Upload & Analysis</h1>
+    
+    <div class="upload-content">
+        <div class="upload-section animate__animated animate__fadeInLeft">
+            <h2><i class="fas fa-cloud-upload-alt"></i> Upload Your File</h2>
+            <p>Upload documents in various formats (PDF, DOCX, PPTX, TXT, CSV) and get instant analysis.</p>
+            
+            <form method="POST" enctype="multipart/form-data" id="uploadForm">
+                <div class="file-upload-wrapper">
+                    <input type="file" name="file" id="file" class="file-upload" accept=".pdf,.docx,.pptx,.txt,.csv">
+                    <label for="file" class="file-upload-label">
+                        <i class="fas fa-file-upload"></i>
+                        <span>Choose a file</span>
+                    </label>
+                    <p class="file-info" id="fileInfo">No file selected</p>
+                </div>
+                <button type="submit" class="btn btn-primary" id="uploadBtn">Analyze File</button>
+            </form>
+        </div>
+        
+        {% if analysis %}
+        <div class="results-section animate__animated animate__fadeInRight">
+            <h2><i class="fas fa-chart-pie"></i> Analysis Results</h2>
+            <div class="file-preview">
+                <h3>File: {{ filename }}</h3>
+                <div class="analysis-results">
+                    <div class="result-card">
+                        <h4>Summary</h4>
+                        <p>{{ analysis.summary }}</p>
+                    </div>
+                    <div class="result-card">
+                        <h4>Keywords</h4>
+                        <div class="keywords">
+                            {% for keyword in analysis.keywords %}
+                            <span class="keyword-tag">{{ keyword }}</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <div class="result-card">
+                        <h4>Statistics</h4>
+                        <div class="stats">
+                            <div class="stat-item">
+                                <span class="stat-label">Word Count:</span>
+                                <span class="stat-value">{{ analysis.word_count }}</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">Unique Words:</span>
+                                <span class="stat-value">{{ analysis.unique_words }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.getElementById('file').addEventListener('change', function(e) {
+        const fileInfo = document.getElementById('fileInfo');
+        if (this.files.length > 0) {
+            fileInfo.textContent = this.files[0].name;
+        } else {
+            fileInfo.textContent = 'No file selected';
+        }
+    });
+    
+    document.getElementById('uploadForm').addEventListener('submit', function() {
+        const uploadBtn = document.getElementById('uploadBtn');
+        uploadBtn.disabled = true;
+        uploadBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Analyzing...';
+    });
+</script>
+{% endblock %}
+{% if success %}
+<div class="analysis-results">
+    <h3>Analysis of {{ filename }}</h3>
+    
+    <div class="result-section">
+        <h4>Summary</h4>
+        <p>{{ analysis.summary }}</p>
+    </div>
+    
+    <div class="result-section">
+        <h4>Keywords</h4>
+        <div class="keywords">
+            {% for word in analysis.keywords %}
+            <span class="keyword">{{ word }}</span>
+            {% endfor %}
+        </div>
+    </div>
+    
+    <div class="result-section">
+        <h4>Statistics</h4>
+        <p>Word Count: {{ analysis.word_count }}</p>
+        <p>Unique Words: {{ analysis.unique_words }}</p>
+    </div>
+</div>
+{% endif %}

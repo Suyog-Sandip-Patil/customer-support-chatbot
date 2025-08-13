@@ -1,0 +1,142 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="chatbot-container">
+    <h1 class="chatbot-title animate__animated animate__fadeInDown">AI Customer Support</h1>
+    
+    <div class="chatbot-content">
+        <div class="chatbot-info animate__animated animate__fadeInLeft">
+            <h2><i class="fas fa-robot"></i> How can I help you today?</h2>
+            <p>Ask me anything about our products, services, or any issues you're facing. I'm here to help 24/7!</p>
+            
+            <div class="suggested-questions">
+                <h3>Common Questions:</h3>
+                <ul>
+                    <li><button class="suggestion-btn">How do I reset my password?</button></li>
+                    <li><button class="suggestion-btn">What are your business hours?</button></li>
+                    <li><button class="suggestion-btn">Where can I find pricing information?</button></li>
+                    <li><button class="suggestion-btn">How do I contact human support?</button></li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="chatbot-interface animate__animated animate__fadeInRight">
+            <div class="chat-messages" id="chatMessages">
+                <div class="message bot-message">
+                    <div class="message-avatar">
+                        <i class="fas fa-robot"></i>
+                    </div>
+                    <div class="message-content">
+                        <p>Hello! I'm your AI support assistant. How can I help you today?</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="chat-input">
+                <form id="chatForm">
+                    <input type="text" id="userInput" placeholder="Type your question here..." autocomplete="off">
+                    <button type="submit" class="send-btn">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </form>
+                <div class="typing-indicator" id="typingIndicator">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const chatForm = document.getElementById('chatForm');
+        const userInput = document.getElementById('userInput');
+        const chatMessages = document.getElementById('chatMessages');
+        const typingIndicator = document.getElementById('typingIndicator');
+        
+        // Handle suggestion buttons
+        document.querySelectorAll('.suggestion-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                userInput.value = this.textContent;
+                userInput.focus();
+            });
+        });
+        
+        // Handle form submission
+        chatForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const message = userInput.value.trim();
+            
+            if (message) {
+                // Add user message to chat
+                addMessageToChat(message, 'user');
+                userInput.value = '';
+                
+                // Show typing indicator
+                typingIndicator.style.display = 'flex';
+                
+                // Scroll to bottom
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+                
+                // Send message to server and get response
+                fetch('/chatbot', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ message: message })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    // Hide typing indicator
+                    typingIndicator.style.display = 'none';
+                    
+                    // Add bot response to chat
+                    addMessageToChat(data.response, 'bot');
+                    
+                    // Scroll to bottom
+                    chatMessages.scrollTop = chatMessages.scrollHeight;
+                })
+                .catch(error => {
+                    typingIndicator.style.display = 'none';
+                    addMessageToChat("Sorry, I'm having trouble connecting. Please try again later.", 'bot');
+                    console.error('Error:', error);
+                });
+            }
+        });
+        
+        // Function to add message to chat
+        function addMessageToChat(message, sender) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${sender}-message`;
+            
+            const avatarDiv = document.createElement('div');
+            avatarDiv.className = 'message-avatar';
+            avatarDiv.innerHTML = sender === 'bot' ? '<i class="fas fa-robot"></i>' : '<i class="fas fa-user"></i>';
+            
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'message-content';
+            contentDiv.innerHTML = `<p>${message}</p>`;
+            
+            messageDiv.appendChild(avatarDiv);
+            messageDiv.appendChild(contentDiv);
+            
+            chatMessages.appendChild(messageDiv);
+            
+            // Add animation
+            messageDiv.style.opacity = '0';
+            setTimeout(() => {
+                messageDiv.style.transition = 'opacity 0.3s ease';
+                messageDiv.style.opacity = '1';
+            }, 10);
+        }
+        
+        // Focus input on page load
+        userInput.focus();
+    });
+</script>
+{% endblock %}

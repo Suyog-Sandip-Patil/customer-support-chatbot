@@ -1,8 +1,8 @@
-🤖 AI Customer Support Chatbot with NLP
-📝 Overview
+🤖 AI Customer Support Chatbot with NLP <br>
+📝 Overview<br>
 This project is an AI-powered customer support chatbot that uses Natural Language Processing (NLP) to understand and respond to user queries. The system features:
 
-💬 Conversational AI chatbot with semantic understanding
+💬 Conversational AI chatbot with semantic understanding<br>
 
 📁 File upload and analysis (PDF, DOCX, PPTX, TXT, CSV)
 

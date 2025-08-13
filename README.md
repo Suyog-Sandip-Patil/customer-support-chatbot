@@ -1,105 +1,85 @@
-🤖 AI Customer Support Chatbot with NLP <br>
-📝 Overview<br>
-This project is an AI-powered customer support chatbot that uses Natural Language Processing (NLP) to understand and respond to user queries. The system features:
+**🤖 AI Customer Support Chatbot with NLP**
 
-💬 Conversational AI chatbot with semantic understanding<br>
+---
 
-📁 File upload and analysis (PDF, DOCX, PPTX, TXT, CSV)
+**📝 Overview**
 
-🔐 User authentication system
+This project is an **AI-powered customer support chatbot** that uses **Natural Language Processing (NLP)** to understand and respond to user queries. The system features:
 
-🌐 Wikipedia integration for general knowledge questions
+- 💬 Conversational AI chatbot with semantic understanding  
+- 📁 File upload and analysis (PDF, DOCX, PPTX, TXT, CSV)  
+- 🔐 User authentication system  
+- 🌐 Wikipedia integration for general knowledge questions  
+- 🧠 Text summarization and keyword extraction  
+- 📊 Usage analytics dashboard  
 
-🧠 Text summarization and keyword extraction
+---
 
-📊 Usage analytics dashboard
+**✨ Features**
 
-✨ Features
-🧠 Intelligent Chatbot: Understands user intent using NLP and provides relevant responses
+- 🧠 **Intelligent Chatbot**: Understands user intent using NLP and provides relevant responses  
+- 📂 **Document Processing**: Extracts and analyzes text from various file formats  
+- 🔐 **User Authentication**: Secure login/signup system with password hashing  
+- 🗃️ **Knowledge Base**: Predefined responses for common support questions  
+- 🌐 **Wikipedia Integration**: Fallback to Wikipedia for general knowledge questions  
+- 📝 **Text Analysis**: Provides summaries, keywords, and statistics for uploaded documents  
 
-📂 Document Processing: Extracts and analyzes text from various file formats
+---
 
-🔐 User Authentication: Secure login/signup system with password hashing
+**⚙️ Prerequisites**
 
-🗃️ Knowledge Base: Predefined responses for common support questions
-
-🌐 Wikipedia Integration: Fallback to Wikipedia for general knowledge questions
-
-📝 Text Analysis: Provides summaries, keywords, and statistics for uploaded documents
-
-⚙️ Prerequisites
 Before running the application, ensure you have the following installed:
 
-🐍 Python 3.8+
+- 🐍 Python 3.8+  
+- 📦 pip (Python package manager)  
+- 🗃️ SQLite (for database)  
 
-📦 pip (Python package manager)
+The following Python packages (will be installed via `requirements.txt`):
 
-🗃️ SQLite (for database)
+- 🧪 Flask  
+- 👤 Flask-Login  
+- 🗄️ Flask-SQLAlchemy  
+- 🗣️ NLTK  
+- 🧬 spaCy  
+- 📄 pdfminer.six  
+- 📝 python-pptx  
+- 📃 python-docx  
+- 🧠 sentence-transformers  
+- 🌐 wikipedia-api  
+- 🧾 sumy  
 
-The following Python packages (will be installed via requirements.txt):
+---
 
-🧪 Flask
+**🛠️ Installation**
 
-👤 Flask-Login
-
-🗄️ Flask-SQLAlchemy
-
-🗣️ NLTK
-
-🧬 spaCy
-
-📄 pdfminer.six
-
-📝 python-pptx
-
-📃 python-docx
-
-🧠 sentence-transformers
-
-🌐 wikipedia-api
-
-🧾 sumy
-
-🛠️ Installation
-1️⃣ Clone the repository:
-bash
-Copy
-Edit
+**1️⃣ Clone the repository:**
 git clone https://github.com/yourusername/ai-customer-support.git
 cd ai-customer-support
-2️⃣ Create and activate a virtual environment:
-bash
-Copy
-Edit
+
+**2️⃣ Create and activate a virtual environment:**
 python -m venv venv
 source venv/bin/activate  # On Windows use `venv\Scripts\activate`
-3️⃣ Install the required packages:
-bash
-Copy
-Edit
+
+**3️⃣ Install the required packages:**
 pip install -r requirements.txt
-4️⃣ Download NLTK data and spaCy model:
-bash
-Copy
-Edit
+
+**4️⃣ Download NLTK data and spaCy model:**
 python -m nltk.downloader punkt stopwords
 python -m spacy download en_core_web_sm
-5️⃣ Initialize the database:
-bash
-Copy
-Edit
+
+**5️⃣ Initialize the database:**
 python create_db.py
 🚀 Running the Application
-Start the Flask development server:
 
-bash
-Copy
-Edit
+**Start the Flask development server:**
 python app.py
-Then open your web browser and go to:
-🌐 http://localhost:5000
 
-🧑‍💻 Usage
+Then open your web browser and go to:
+🌐 **http://localhost:5000**
+
+
+**🧑‍💻 Usage**
+
 🏠 Home Page: Overview of the system features
 
 ✍️ Sign Up: Create a new account
@@ -117,7 +97,9 @@ Then open your web browser and go to:
 📧 Contact: Get in touch with support
 
 📄 File Upload Support
-Supports the following file formats:
+
+
+**Supported file formats:**
 
 📕 PDF (.pdf)
 
@@ -129,8 +111,10 @@ Supports the following file formats:
 
 🧾 CSV (.csv)
 
-⚙️ Configuration
-Customize by setting environment variables:
+
+**⚙️ Configuration**
+
+You can configure the app using environment variables:
 
 🔑 SECRET_KEY: Flask secret key for session security
 
@@ -138,9 +122,11 @@ Customize by setting environment variables:
 
 📂 UPLOAD_FOLDER: Path for file uploads
 
-Default configuration is located in app.py.
+Default configuration is in app.py.
 
-🛠️ Troubleshooting
+
+**🛠️ Troubleshooting**
+
 ❌ Missing Dependencies: Run pip install -r requirements.txt
 
 📦 NLTK Data: Run python -m nltk.downloader punkt stopwords

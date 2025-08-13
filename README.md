@@ -77,6 +77,7 @@ python app.py
 Then open your web browser and go to:
 🌐 **http://localhost:5000**
 
+---
 
 **🧑‍💻 Usage**
 
@@ -98,6 +99,7 @@ Then open your web browser and go to:
 
 📄 File Upload Support
 
+---
 
 **Supported file formats:**
 
@@ -111,6 +113,7 @@ Then open your web browser and go to:
 
 🧾 CSV (.csv)
 
+---
 
 **⚙️ Configuration**
 
@@ -124,6 +127,7 @@ You can configure the app using environment variables:
 
 Default configuration is in app.py.
 
+---
 
 **🛠️ Troubleshooting**
 
